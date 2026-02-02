@@ -36,23 +36,16 @@ public class PersonController {
 
     @PutMapping("/person/{id}")
     public Person updatePerson(@PathVariable("id") Integer id, @RequestBody Person person) {
-        Optional<Person> personOptional = personService.getPerson(id);
-        if (personOptional.isPresent()) {
-            Person personToUpdate = personOptional.get();
+        // recherche de la personne dans la BDD
+        // sinon trouvé exception
+        Person personUpdated = personService.getPerson(id)
+                .orElseThrow(() -> new NoSuchElementException("Personne non trouvée avec l'ID : " + id));
 
-            String firstName = person.getFirstname();
-            if (firstName != null) {
-                personToUpdate.setFirstname(firstName);
-            }
-            String lastName = person.getLastname();
-            if (lastName != null) {
-                personToUpdate.setLastname(lastName);
-            }
-            personService.savePerson(personToUpdate);
-            return personToUpdate;
-        } else {
-            return null;
-        }
+        // Utilisation de Optional.ofNullable pour éviter les if
+        Optional.ofNullable(person.getFirstname()).ifPresent(personUpdated::setFirstname);
+        Optional.ofNullable(person.getLastname()).ifPresent(personUpdated::setLastname);
+
+        return personService.savePerson(personUpdated);
     }
 
     @DeleteMapping("/person/{id}")
