@@ -8,6 +8,6 @@ import training.afpa.cda24060.api2026.model.Person;
 public interface PersonRepository extends CrudRepository<Person, Integer> {
 
     // pas de code
-    // en effet, @Repository nous donne accés à un CRUD
+    // en effet, @Repository nous donne acces à un CRUD
 
 }

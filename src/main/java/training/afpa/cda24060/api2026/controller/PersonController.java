@@ -1,10 +1,12 @@
 package training.afpa.cda24060.api2026.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.web.bind.annotation.*;
 import training.afpa.cda24060.api2026.model.Person;
 import training.afpa.cda24060.api2026.service.PersonService;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @RestController
@@ -26,7 +28,10 @@ public class PersonController {
     @GetMapping("/person/{id}")
     public Person getPersonById(@PathVariable("id") Integer id) {
         Optional<Person> person = personService.getPerson(id);
-        return person.orElse(null);
+        if (!person.isPresent()) {
+            throw new NoSuchElementException("Personne non trouvé avec l'id : " + id + " !");
+        }
+        return person.get();
     }
 
     @PutMapping("/person/{id}")
