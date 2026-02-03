@@ -79,7 +79,7 @@ jobs:
       # message de fin indiquant que tout s'est bien passé
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
-  Team_Notification:
+  Team_Notification_build:
     name: MS Teams Artefact Available
     runs-on: ubuntu-latest
     needs: build
@@ -147,14 +147,14 @@ jobs:
       # message de fin indiquant que tout s'est bien passe
       - run: echo "🍏 This job's status is ${{ job.status }}. 🏁 🏆"
 
-    Team_Notification:
-      name: MS Teams Deploy Card
-      runs-on: ubuntu-latest
-      needs: docker-build-image-api
-      steps:
-        # this is the new step
-        - uses: dchourasia/ms-teams-notification@1.0
-          if: always()
-          with:
-            github-token: ${{ github.token }}
-            webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+  Team_Notification_docker:
+    name: MS Teams Deploy Card
+    runs-on: ubuntu-latest
+    needs: docker-build-image-api
+    steps:
+      # this is the new step
+      - uses: dchourasia/ms-teams-notification@1.0
+        if: always()
+        with:
+          github-token: ${{ github.token }}
+          webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
