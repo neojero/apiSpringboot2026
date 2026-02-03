@@ -87,7 +87,7 @@ jobs:
         run: docker run -d -p 9000:9000 --name api-test --network host apispringboot2026
 
       - name: Show_API_logs
-        run: docker logs api_test
+        run: docker logs api-test
 
       - name: Wait_for_API_to_be_ready
         run: |
@@ -112,11 +112,10 @@ jobs:
     needs: build
     steps:
         # this is the new step
-        - uses: dchourasia/ms-teams-notification@1.0
+        - uses: simbo/msteams-message-card-action@latest
           if: always()
           with:
-            github-token: ${{ github.token }}
-            webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+            webhook: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
 
   docker-build-image-api:
     # verifie que le declenchement provient de la branche main
@@ -181,8 +180,7 @@ jobs:
     needs: docker-build-image-api
     steps:
       # this is the new step
-      - uses: dchourasia/ms-teams-notification@1.0
+      - uses: simbo/msteams-message-card-action@latest
         if: always()
         with:
-          github-token: ${{ github.token }}
-          webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+          webhook: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
