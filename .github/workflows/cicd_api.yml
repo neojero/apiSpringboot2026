@@ -95,9 +95,13 @@ jobs:
             sleep 2
               done
 
-      - name: Test_API_endpoints_with_curl
+      - name: Test API endpoints
         run: |
-          curl -s http://localhost:9000/persons | grep -q "[]"
+            curl -s http://localhost:9000/persons | grep -q "id"
+            if [ $? -ne 0 ]; then
+              echo "Erreur : réponse inattendue pour /persons"
+              exit 1
+            fi
 
       - name: Stop_Docker_container
         if: always()

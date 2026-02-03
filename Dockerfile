@@ -13,7 +13,10 @@ ENV APP_HOME=/app
 # cela permet de forcer le paramétrage de Springboot pour coller
 # à notre conteneur
 ENV SPRING_DATASOURCE_URL=jdbc:mysql://mysql_server:3306/springboot
-
+# ici ce sont des parametres Dialect de Springboot pour la connexion BDD
+ENV SPRING_JPA_SHOW_SQL=true
+ENV SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
+ENV SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
 # Créer un répertoire pour l'application
 WORKDIR $APP_HOME
 
