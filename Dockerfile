@@ -7,6 +7,13 @@ ARG PASSWORD
 # variables d'environnement
 ENV APP_HOME=/app
 
+#
+# remplacé par un appel directement dans le docker-compose
+#
+# cela permet de forcer le paramétrage de Springboot pour coller
+# à notre conteneur
+ENV SPRING_DATASOURCE_URL=jdbc:mysql://mysql_server:3306/springboot
+
 # Créer un répertoire pour l'application
 WORKDIR $APP_HOME
 
@@ -27,4 +34,4 @@ COPY infra/script/wait-for-it.sh /app/wait-for-it.sh
 RUN chmod +x /app/wait-for-it.sh
 
 # execution du script, puis de la BDD et enfin de l'API
-ENTRYPOINT ["./wait-for-it.sh", "mysql_test", "3306", "java", "-jar", "app.jar"]
+ENTRYPOINT ["./wait-for-it.sh", "mysql_server", "3306", "java", "-jar", "app.jar"]
