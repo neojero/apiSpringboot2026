@@ -7,7 +7,7 @@ on:
     # pour eviter de reconstruire si on modifie un fichier autre que dans src et workflow
     paths:
       - 'src/**'
-      - '.github/workflows/workflow_cicd_api.yml'
+      - '.github/workflows/cicd_api.yml'
 
 jobs:
   build:
