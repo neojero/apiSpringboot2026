@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build-and-Analyse
+    name: Build_and_Analyse
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -30,58 +30,81 @@ jobs:
           fetch-depth: 0  # Clone l’historique complet (tous les commits, branches, tags).
 
       # test d'attente de mise en service du conteneur Mysql
-      - name: wait for MySQl to be ready
+      - name: wait_for_MySQl_to_be_ready
         run: |
           while ! mysqladmin ping -h"127.0.0.1" -P"3306" --silent; do
             sleep 1
           done
 
-      - name: Create Database from script
+      - name: Create_Database_from_script
         run: mysql -h 127.0.0.1 -u root -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} < infra/mysql/dump/script.sql
 
       # ajout de la jdk
-      - name: Set up JDK 21
+      - name: Set_up_JDK_21
         uses: actions/setup-java@v4
         with:
           java-version: 21
-          distribution: 'zulu' # Alternative distribution options are available.
+          distribution: 'temurin' # Alternative distribution options are available.
 
-      - name: Cache SonarQube packages
+      - name: Cache_SonarQube_packages
         uses: actions/cache@v5
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Cache Maven packages
+      - name: Cache_Maven_packages
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build and analyze
+      - name: Build_and_analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        # build avec fichier properties spécifique mais plus besoin suite utilisation env dans Dockerfile
-        #run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2025 -Dspring.profiles.active=cicd
-        # execution en mode non interactif (B) et Exécute toutes les phases jusqu'à verify, y compris test, et effectue des vérifications supplémentaires pour s'assurer que le package est valide.
-        # a utiliser lors de script d'automatisation type CICD
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026
 
-      - name: Charging artefact   # permet de charger un artefact
+      - name: Charging_artefact   # permet de charger un artefact
         uses: actions/upload-artifact@v4
         with:
           name: package
           path: target/*.jar
           retention-days: 1
 
+      # TEST de l'API au sein de Github Actions en construisant un docker contenant l'API
+      # recupération de l'artefact
+      - name: Download_a_single_artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: package
+
+      - name: Build_Docker_image
+        run: docker build -t apispringboot2026 .
+
+      - name: Run_Docker_container
+        run: docker run -d -p 9000:9000 --name api-test --network host apispringboot2026
+
+      - name: Wait_for_API_to_be_ready
+        run: |
+          while ! curl -s http://localhost:9000/actuator/health | grep -q '"status":"UP"'; do
+            sleep 2
+              done
+
+      - name: Test_API_endpoints_with_curl
+        run: |
+          curl -s http://localhost:9000/persons | grep -q "[]"
+
+      - name: Stop_Docker_container
+        if: always()
+        run: docker stop api-test && docker rm api-test
+
       # message de fin indiquant que tout s'est bien passé
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
   Team_Notification_build:
-    name: MS Teams Artefact Available
+    name: MS_Teams_Artefact_Available
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -104,41 +127,41 @@ jobs:
       # installation des outils pour docker
       # Optionnelle
       # QUEMU : pour construite des images multi-plateforme (linux/amd64,linux/arm64,linux/arm/v7)
-      - name: Set Up QEMU
+      - name: Set_Up_QEMU
         uses: docker/setup-qemu-action@v3
 
       # Docker Buildx est une extension de Docker qui permet de tirer parti de
       # fonctionnalités avancées pour la construction d'images Docker
       # Optionnelle
-      - name: Set Up Docker Build
+      - name: Set_Up_Docker_Build
         uses: docker/setup-buildx-action@v3
 
       # connexion au docker hub
-      - name: Connect to Docker Hub
+      - name: Connect_to_Docker_Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       # recupération de l'artefact
-      - name: Download a single artifact
+      - name: Download_a_single_artifact
         uses: actions/download-artifact@v4
         with:
           name: package
 
       # juste pour le controle
-      - name: List files in the repository
+      - name: List_files_in_the_repository
         run: ls ${{ github.workspace }}
 
       # construction de l'image docker et push sur dockerHub
-      - name: Build and push
+      - name: Build_and_push
         uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USER }}/apispringboot2025:latest
+            ${{ secrets.DOCKERHUB_USER }}/apispringboot2026:latest
             ${{ secrets.DOCKERHUB_USER }}/apispringboot2026:${{ github.sha }}
           # Spécifie les architectures cibles
           #platforms: linux/amd64,linux/arm64,linux/arm/v7
@@ -146,31 +169,11 @@ jobs:
             USERNAME=${{secrets.DB_USER}}
             PASSWORD=${{secrets.DB_PASSWORD}}
 
-      # TEST de l'API au sein de Github Actions en construisant un docker contenant l'API
-      - name: Build Docker image
-        run: docker build -t apispringboot2026 .
-
-      - name: Run Docker container
-        run: docker run -d -p 8080:8080 --name api-test --network host apispringboot2026
-
-      - name: Wait for API to be ready
-        run: |
-          while ! curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; do
-            sleep 2
-              done
-
-      - name: Run integration tests
-        run: mvn test -Dtest=IntegrationTest
-
-      - name: Stop Docker container
-        if: always()
-        run: docker stop api-test && docker rm api-test
-
       # message de fin indiquant que tout s'est bien passe
       - run: echo "🍏 This job's status is ${{ job.status }}. 🏁 🏆"
 
   Team_Notification_docker:
-    name: MS Teams Deploy Card
+    name: MS_Teams_Deploy_Image
     runs-on: ubuntu-latest
     needs: docker-build-image-api
     steps:
