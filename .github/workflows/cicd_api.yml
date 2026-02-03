@@ -112,10 +112,11 @@ jobs:
     needs: build
     steps:
         # this is the new step
-        - uses: simbo/msteams-message-card-action@latest
+        - uses: dchourasia/ms-teams-notification@1.0
           if: always()
           with:
-            webhook: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+            github-token: ${{ github.token }}
+            webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
 
   docker-build-image-api:
     # verifie que le declenchement provient de la branche main
@@ -180,7 +181,8 @@ jobs:
     needs: docker-build-image-api
     steps:
       # this is the new step
-      - uses: simbo/msteams-message-card-action@latest
+      - uses: dchourasia/ms-teams-notification@1.0
         if: always()
         with:
-          webhook: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+          github-token: ${{ github.token }}
+          webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}

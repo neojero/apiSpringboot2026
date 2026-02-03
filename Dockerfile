@@ -27,4 +27,4 @@ COPY infra/script/wait-for-it.sh /app/wait-for-it.sh
 RUN chmod +x /app/wait-for-it.sh
 
 # execution du script, puis de la BDD et enfin de l'API
-ENTRYPOINT ["./wait-for-it.sh", "mysql_server", "3306", "java", "-jar", "app.jar"]
+ENTRYPOINT ["./wait-for-it.sh", "mysql_test", "3306", "java", "-jar", "app.jar"]
