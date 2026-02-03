@@ -34,7 +34,7 @@ public class PersonControllerIT {
     private void performGetPersonsRequest() throws Exception {
         mockMvc.perform(get("/persons"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].firstname", is("Shellie")));
+                .andExpect(jsonPath("$[0].firstname", is("Orlando")));
     }
 
 
