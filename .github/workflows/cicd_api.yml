@@ -137,12 +137,34 @@ jobs:
           context: .
           file: Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USER }}/apispringboot2025:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USER }}/apispringboot2025:latest
+            ${{ secrets.DOCKERHUB_USER }}/apispringboot2026:${{ github.sha }}
           # Spécifie les architectures cibles
           #platforms: linux/amd64,linux/arm64,linux/arm/v7
           build-args: |
             USERNAME=${{secrets.DB_USER}}
             PASSWORD=${{secrets.DB_PASSWORD}}
+
+      # TEST de l'API au sein de Github Actions en construisant un docker contenant l'API
+      - name: Build Docker image
+        run: docker build -t apispringboot2026 .
+
+      - name: Run Docker container
+        run: docker run -d -p 8080:8080 --name api-test --network host apispringboot2026
+
+      - name: Wait for API to be ready
+        run: |
+          while ! curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"'; do
+            sleep 2
+              done
+
+      - name: Run integration tests
+        run: mvn test -Dtest=IntegrationTest
+
+      - name: Stop Docker container
+        if: always()
+        run: docker stop api-test && docker rm api-test
 
       # message de fin indiquant que tout s'est bien passe
       - run: echo "🍏 This job's status is ${{ job.status }}. 🏁 🏆"

@@ -1,5 +1,9 @@
 FROM eclipse-temurin:21-jdk-jammy
 
+# definition des arguments pour l'exemple
+ARG USERNAME
+ARG PASSWORD
+
 # variables d'environnement
 ENV APP_HOME=/app
 
