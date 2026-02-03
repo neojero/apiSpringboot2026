@@ -1,0 +1,80 @@
+name: workflow_cicd_api
+run-name: ${{ github.actor }} GitHub Actions Workflow CICD API 🚀
+on:
+  push:
+    branches:
+      - main
+    # pour eviter de reconstruire si on modifie un fichier autre que dans src et workflow
+    paths:
+      - 'src/**'
+      - '.github/workflows/workflow_cicd_api.yml'
+
+jobs:
+  build:
+    name: Build and Analyse
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      # recopie du depot dans executeur
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Clone l’historique complet (tous les commits, branches, tags).
+
+      # test d'attente de mise en service du conteneur Mysql
+      - name: wait for MySQl to be ready
+        run: |
+          while ! mysqladmin ping -h"127.0.0.1" -P"3306" --silent; do
+            sleep 1
+          done
+
+      - name: Create Database from script
+        run: mysql -h 127.0.0.1 -u root -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} < infra/mysql/dump/script.sql
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'zulu' # Alternative distribution options are available.
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        # build avec fichier properties spécifique mais plus besoin suite utilisation env dans Dockerfile
+        #run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2025 -Dspring.profiles.active=cicd
+        # execution en mode non interactif (B) et Exécute toutes les phases jusqu'à verify, y compris test, et effectue des vérifications supplémentaires pour s'assurer que le package est valide.
+        # a utiliser lors de script d'automatisation type CICD
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026
+
+      - name: Charging artefact   # permet de charger un artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: target/*.jar
+          retention-days: 1
+
+      # message de fin indiquant que tout s'est bien passé
+      - run: echo "🍏 This job's status is ${{ job.status }}."
