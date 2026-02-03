@@ -86,6 +86,9 @@ jobs:
       - name: Run_Docker_container
         run: docker run -d -p 9000:9000 --name api-test --network host apispringboot2026
 
+      - name: Show_API_logs
+        run: docker logs api_test
+
       - name: Wait_for_API_to_be_ready
         run: |
           while ! curl -s http://localhost:9000/actuator/health | grep -q '"status":"UP"'; do
