@@ -1,5 +1,8 @@
 package training.afpa.cda24060.api2026.controller;
 
+import io.qameta.allure.Description;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -23,6 +26,8 @@ public class PersonControllerTest {
     private PersonService personService;
 
     @Test
+    @Description("Test de récupération de la liste des personnes")
+    @Severity(SeverityLevel.CRITICAL)
     public void getPersonsTest() throws Exception {
 
         // défnit le comportement du Mock

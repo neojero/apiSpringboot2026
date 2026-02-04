@@ -1,5 +1,7 @@
 package training.afpa.cda24060.api2026.controller;
 
+import io.qameta.allure.Description;
+import io.qameta.allure.Step;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +25,7 @@ public class PersonControllerIT {
      * @throws Exception
      */
     @Test
+    @Description("Test de récupération de la liste des personnes")
     public void getPersonsTest() throws Exception {
         performGetPersonsRequest();
     }
@@ -31,6 +34,7 @@ public class PersonControllerIT {
      * Methode de controle que la 1ere personne du Json est Jemima
      * @throws Exception
      */
+    @Step("Effectuer une requête GET pour récupérer la liste des personnes")
     private void performGetPersonsRequest() throws Exception {
         mockMvc.perform(get("/persons"))
                 .andExpect(status().isOk())
