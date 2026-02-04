@@ -82,12 +82,14 @@
                 <version>2.13.0</version>
                 <configuration>
                     <reportVersion>2.21.0</reportVersion>
+                    <resultsDirectory>${project.basedir}/allure-results</resultsDirectory>
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <phase>verify</phase> <!-- Allure s'exécute pendant verify -->
                     </execution>
                 </executions>
             </plugin>
