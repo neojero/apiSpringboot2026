@@ -67,7 +67,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026
 
-      - name: Deploy Allure Report to GitHub Pages
+      - name: Generate_Allure_Report
+        run: mvn allure:report
+
+      - name: Deploy_Allure_Report_to_GitHub_Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
