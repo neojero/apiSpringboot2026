@@ -70,20 +70,13 @@ jobs:
       - name: Generate Allure Results
         run: mvn allure:report
 
-      - name: Publish_Allure_Report
-        uses: peaceiris/actions-gh-pages@v3
-        if: always()
-        with:
-          github_token: ${{ secrets.PERSONAL_TOKEN_ALLURE }}
-          publish_dir: target/site/allure-maven-plugin
-          destination_dir: allure-report
-
-      - name: Deploy_rapport_on_GitHubPages
+      - name: Deploy Allure Report to GitHub Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-report
+          publish_dir: target/site/allure-maven-plugin
+          destination_dir: allure-report
           keep_files: false
 
       - name: Charging_artefact   # permet de charger un artefact
