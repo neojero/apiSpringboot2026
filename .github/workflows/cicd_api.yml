@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mysql_server:
-        image: mysql:8.0
+        image: mysql:latest
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
           MYSQL_DATABASE: ${{ secrets.DB_NAME }}
@@ -26,7 +26,7 @@ jobs:
 
     steps:
       # recopie du depot dans executeur
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Clone l’historique complet (tous les commits, branches, tags).
 
@@ -67,8 +67,27 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026
 
+      - name: Generate Allure Results
+        run: mvn allure:report
+
+      - name: Publish_Allure_Report
+        uses: peaceiris/actions-gh-pages@v3
+        if: always()
+        with:
+          github_token: ${{ secrets.PERSONAL_TOKEN_ALLURE }}
+          publish_dir: target/site/allure-maven-plugin
+          destination_dir: allure-report
+
+      - name: Deploy_rapport_on_GitHubPages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report
+          keep_files: false
+
       - name: Charging_artefact   # permet de charger un artefact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: package
           path: target/*.jar
@@ -123,6 +142,8 @@ jobs:
             github-token: ${{ github.token }}
             webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
 
+# PARTIE 2 - IMAGE DOCKER
+
   docker-build-image-api:
     # verifie que le declenchement provient de la branche main
     if: ${{ github.ref == 'refs/heads/main' }}
@@ -130,7 +151,7 @@ jobs:
     needs: build
     steps:
       # recuperation du dépôt
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # installation des outils pour docker
       # Optionnelle
@@ -153,7 +174,7 @@ jobs:
 
       # recupération de l'artefact
       - name: Download_a_single_artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: package
 
