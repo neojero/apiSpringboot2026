@@ -69,7 +69,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build_and_analyze
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026 -Dspring.profiles.active=ci
 
       - name: Deploy_Allure_Report_to_GitHub_Pages
         if: always()
