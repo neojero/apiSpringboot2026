@@ -9,23 +9,23 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class Api2026Application {
 
     static {
-        // 1. Vérifie si on est dans un environnement GitHub Actions (ou autre CI)
+        // 1. Vérifie si on est en environnement CI (GitHub Actions)
         String isCi = System.getenv("CI");
         if ("true".equals(isCi)) {
-            // En CI, utilise directement les variables d'environnement
-            System.setProperty("DB_URL", System.getenv("DB_URL"));
-            System.setProperty("DB_USER", System.getenv("DB_USER"));
-            System.setProperty("DB_PASSWORD", System.getenv("DB_PASSWORD"));
-            System.setProperty("DB_DRIVER", System.getenv("DB_DRIVER"));
+            // En CI, injecte directement les variables d'environnement dans les propriétés système
+            System.setProperty("spring.datasource.url", System.getenv("DB_URL"));
+            System.setProperty("spring.datasource.username", System.getenv("DB_USER"));
+            System.setProperty("spring.datasource.password", System.getenv("DB_PASSWORD"));
+            System.setProperty("spring.datasource.driver-class-name", System.getenv("DB_DRIVER"));
         } else {
             // En local, charge le .env
             Dotenv dotenv = Dotenv.configure()
                     .directory("./")
                     .load();
-            System.setProperty("DB_URL", dotenv.get("DB_URL"));
-            System.setProperty("DB_USER", dotenv.get("DB_USER"));
-            System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
-            System.setProperty("DB_DRIVER", dotenv.get("DB_DRIVER"));
+            System.setProperty("spring.datasource.url", dotenv.get("DB_URL"));
+            System.setProperty("spring.datasource.username", dotenv.get("DB_USER"));
+            System.setProperty("spring.datasource.password", dotenv.get("DB_PASSWORD"));
+            System.setProperty("spring.datasource.driver-class-name", dotenv.get("DB_DRIVER"));
         }
     }
 

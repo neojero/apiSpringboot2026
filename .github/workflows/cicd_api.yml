@@ -20,6 +20,7 @@ jobs:
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       DB_DRIVER: ${{ secrets.DB_DRIVER }}
       CI: "true"  # Indique que c'est un environnement CI
+
     services:
       mysql_server:
         image: mysql:latest
