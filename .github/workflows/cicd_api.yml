@@ -9,6 +9,12 @@ on:
       - 'src/**'
       - '.github/workflows/cicd_api.yml'
 
+env:
+  DB_URL: ${{ secrets.DB }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  DB_DRIVER: ${{ secrets.DB_DRIVER }}
+
 # comment
 jobs:
   build:

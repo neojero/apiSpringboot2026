@@ -34,3 +34,5 @@ build/
 
 ### ALLURE ###
 allure-results/
+
+.env
