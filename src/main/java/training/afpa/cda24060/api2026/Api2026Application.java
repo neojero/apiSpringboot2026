@@ -9,15 +9,18 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class Api2026Application {
 
     static {
-        // Charge le .env dès que la classe est chargée (avant le contexte Spring)
-        Dotenv dotenv = Dotenv.configure()
-                .directory("./")
-                .load();
-        // Injecte les variables dans les propriétés système
-        System.setProperty("DB_URL", dotenv.get("DB_URL"));
-        System.setProperty("DB_USER", dotenv.get("DB_USER"));
-        System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
-        System.setProperty("DB_DRIVER", dotenv.get("DB_DRIVER"));
+        String isCi = System.getenv("CI");
+        if (!"true".equals(isCi)) {
+            // Charge le .env dès que la classe est chargée (avant le contexte Spring)
+            Dotenv dotenv = Dotenv.configure()
+                    .directory("./")
+                    .load();
+            // Injecte les variables dans les propriétés système
+            System.setProperty("DB_URL", dotenv.get("DB_URL"));
+            System.setProperty("DB_USER", dotenv.get("DB_USER"));
+            System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+            System.setProperty("DB_DRIVER", dotenv.get("DB_DRIVER"));
+        }
     }
 
 
