@@ -9,12 +9,6 @@ on:
       - 'src/**'
       - '.github/workflows/cicd_api.yml'
 
-env:
-  DB_URL: ${{ secrets.DB }}
-  DB_USER: ${{ secrets.DB_USER }}
-  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-  DB_DRIVER: ${{ secrets.DB_DRIVER }}
-
 # comment
 jobs:
   build:
@@ -71,6 +65,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DRIVER: ${{ secrets.DB_DRIVER }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026
 
       - name: Deploy_Allure_Report_to_GitHub_Pages
