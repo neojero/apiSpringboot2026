@@ -57,18 +57,18 @@ jobs:
 
       - name: Cache_Maven_packages
         uses: actions/cache@v4
-        env: # Définit les variables pour toutes les étapes du job
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_DRIVER: ${{ secrets.DB_DRIVER }}
-          SPRING_PROFILES_ACTIVE: ci
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build_and_analyze
+        env: # Définit les variables pour toutes les étapes du job
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DRIVER: ${{ secrets.DB_DRIVER }}
+          SPRING_PROFILES_ACTIVE: ci
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026 -Dspring.profiles.active=ci
 
       - name: Deploy_Allure_Report_to_GitHub_Pages
