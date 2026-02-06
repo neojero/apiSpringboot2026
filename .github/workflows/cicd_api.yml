@@ -71,7 +71,7 @@ jobs:
           SPRING_PROFILES_ACTIVE: ci
         run: |
           env | grep SPRING_PROFILES_ACTIVE
-          run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026 -Dspring.config.activate.on-profile=ci -Dspring.profiles.active=ci
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026 -Dspring.config.activate.on-profile=ci -Dspring.profiles.active=ci
 
       - name: Deploy_Allure_Report_to_GitHub_Pages
         if: always()
@@ -89,7 +89,7 @@ jobs:
           path: target/*.jar
           retention-days: 1
 
-#      # TEST de l'API au sein de Github Actions en construisant un docker contenant l'API
+#      # TEST de l'API as sein de GitHub Actions en construisant un docker contenant l'API
 #      # recupération de l'artefact
 #      - name: Download_a_single_artifact
 #        uses: actions/download-artifact@v4
@@ -97,7 +97,7 @@ jobs:
 #          name: package
 #
 #      - name: Build_Docker_image
-#        run: docker build -t apispringboot2026 .
+#        run: docker build -t apispringboot2026.
 #
 #      - name: Run_Docker_container
 #        run: docker run -d -p 9000:9000 --name api-test --network host apispringboot2026
@@ -115,7 +115,7 @@ jobs:
 #        run: |
 #            curl -s http://localhost:9000/persons | grep -q "id"
 #            if [ $? -ne 0 ]; then
-#              echo "Erreur : réponse inattendue pour /persons"
+#              echo "Erreur: réponse inattendue pour /persons"
 #              exit 1
 #            fi
 #
