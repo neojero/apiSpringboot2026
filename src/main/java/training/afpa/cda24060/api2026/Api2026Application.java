@@ -8,7 +8,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 @SpringBootApplication
 public class Api2026Application {
 
-    static {
+   static {
         String isCi = System.getenv("CI");
         if (!"true".equals(isCi)) {
             // Charge le .env dès que la classe est chargée (avant le contexte Spring)
