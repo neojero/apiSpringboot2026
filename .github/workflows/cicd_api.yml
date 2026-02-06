@@ -68,7 +68,10 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_DRIVER: ${{ secrets.DB_DRIVER }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SPRING_PROFILES_ACTIVE: ci
+
         run: |
           env | grep SPRING_PROFILES_ACTIVE
           mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026 -Dspring.config.activate.on-profile=ci -Dspring.profiles.active=ci
