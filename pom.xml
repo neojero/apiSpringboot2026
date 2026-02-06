@@ -29,6 +29,7 @@
     <properties>
         <java.version>21</java.version>
         <sonar.organization>neojero</sonar.organization>
+        <sonar.projectKey>neojero_apiSpringboot2026</sonar.projectKey>
     </properties>
     <dependencies>
         <dependency>

@@ -72,7 +72,7 @@ jobs:
         run: |
           env | grep SPRING_PROFILES_ACTIVE
           mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026 -Dspring.config.activate.on-profile=ci -Dspring.profiles.active=ci
-      
+
       - name: Deploy_Allure_Report_to_GitHub_Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
