@@ -7,6 +7,8 @@ ARG PASSWORD
 # variables d'environnement
 ENV APP_HOME=/app
 
+ENV SPRING_PROFILES_ACTIVE=ci
+
 # Créer un répertoire pour l'application
 WORKDIR $APP_HOME
 

@@ -188,6 +188,7 @@ jobs:
           context: .
           file: Dockerfile
           push: true
+          github-token: ${{ github.token }}
           tags: |
             ${{ secrets.DOCKERHUB_USER }}/apispringboot2026:latest
             ${{ secrets.DOCKERHUB_USER }}/apispringboot2026:${{ github.sha }}
