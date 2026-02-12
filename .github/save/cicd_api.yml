@@ -1,0 +1,191 @@
+name: workflow_cicd_api
+run-name: ${{ github.actor }} GitHub Actions Workflow CICD API 🚀
+on:
+  push:
+    branches:
+      - main
+    # pour eviter de reconstruire si on modifie un fichier autre que dans src et workflow
+    paths:
+      - 'src/**'
+      - 'cicd_api.yml'
+
+# comment
+jobs:
+  build:
+    name: Build_and_Analyse
+    runs-on: ubuntu-latest
+
+    services:
+      mysql_server:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      # recopie du depot dans executeur
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Clone l’historique complet (tous les commits, branches, tags).
+
+      # ✅ Ajout : étape Infisical
+      - name: Fetch secrets from Infisical
+        uses: infisical/github-action@v1
+        with:
+          infisical-token: ${{ secrets.INFISICAL_TOKEN }}
+          project-id: ${{ secrets.INFISICAL_ID }}
+          environment: "dev"
+
+      # test d'attente de mise en service du conteneur Mysql
+      - name: wait_for_MySQl_to_be_ready
+        run: |
+          while ! mysqladmin ping -h"127.0.0.1" -P"3306" --silent; do
+            sleep 1
+          done
+
+      - name: Create_Database_from_script
+        run: mysql -h 127.0.0.1 -u root -p${{ env.DB_PASSWORD }} ${{ env.DB_USER }} < infra/mysql/dump/script.sql
+
+      # ajout de la jdk
+      - name: Set_up_JDK_21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin' # Alternative distribution options are available.
+
+      - name: Cache_SonarQube_packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache_Maven_packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build_and_analyze
+        env: # Définit les variables pour toutes les étapes du job
+          SPRING_DATASOURCE_URL: ${{ env.DB_URL }}
+          SPRING_DATASOURCE_USERNAME: ${{ env.DB_USER }}
+          SPRING_DATASOURCE_PASSWORD: ${{ env.DB_PASSWORD }}
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${{ env.DB_DRIVER }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SPRING_PROFILES_ACTIVE: ci
+
+        run: |
+          env | grep SPRING_PROFILES_ACTIVE
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=neojero_apiSpringboot2026 -Dspring.config.activate.on-profile=ci -Dspring.profiles.active=ci
+
+      - name: Deploy_Allure_Report_to_GitHub_Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.PERSONAL_TOKEN_ALLURE }}
+          publish_dir: target/site/allure-maven-plugin
+          destination_dir: allure-report
+          keep_files: false
+
+      - name: Charging_artefact   # permet de charger un artefact
+        uses: actions/upload-artifact@v5
+        with:
+          name: package
+          path: target/*.jar
+          retention-days: 1
+
+      # message de fin indiquant que tout s'est bien passé
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+
+  Team_Notification_build:
+    name: MS_Teams_Artefact_Available
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+        # this is the new step
+        - uses: dchourasia/ms-teams-notification@1.0
+          if: always()
+          with:
+            github-token: ${{ github.token }}
+            webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+
+# PARTIE 2 - IMAGE DOCKER
+
+  docker-build-image-api:
+    # verifie que le declenchement provient de la branche main
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      # recuperation du dépôt
+      - uses: actions/checkout@v5
+
+      # installation des outils pour docker
+      # Optionnelle
+      # QUEMU : pour construite des images multi-plateforme (linux/amd64,linux/arm64,linux/arm/v7)
+      - name: Set_Up_QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # Docker Buildx est une extension de Docker qui permet de tirer parti de
+      # fonctionnalités avancées pour la construction d'images Docker
+      # Optionnelle
+      - name: Set_Up_Docker_Build
+        uses: docker/setup-buildx-action@v3
+
+      # connexion au docker hub
+      - name: Connect_to_Docker_Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      # recupération de l'artefact
+      - name: Download_a_single_artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: package
+
+      - name: ✅ Test Docker image  # ✅ Ajout : test avant push
+        run: docker run --rm ${{ secrets.DOCKERHUB_USER }}/apispringboot2026:latest echo "Test OK"
+
+      # juste pour le controle
+      - name: List_files_in_the_repository
+        run: ls ${{ github.workspace }}
+
+      # construction de l'image docker et push sur dockerHub
+      - name: Build_and_push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          github-token: ${{ github.token }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USER }}/apispringboot2026:latest
+            ${{ secrets.DOCKERHUB_USER }}/apispringboot2026:${{ github.sha }}
+          # Spécifie les architectures cibles
+          #platforms: linux/amd64,linux/arm64,linux/arm/v7
+          build-args: |
+            USERNAME=${{env.DB_USER}}
+            PASSWORD=${{env.DB_PASSWORD}}
+
+      # message de fin indiquant que tout s'est bien passe
+      - run: echo "🍏 This job's status is ${{ job.status }}. 🏁 🏆"
+
+  Team_Notification_docker:
+    name: MS_Teams_Deploy_Image
+    runs-on: ubuntu-latest
+    needs: docker-build-image-api
+    steps:
+      # this is the new step
+      - uses: dchourasia/ms-teams-notification@1.0
+        if: always()
+        with:
+          github-token: ${{ github.token }}
+          webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}

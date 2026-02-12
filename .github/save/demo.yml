@@ -1,0 +1,54 @@
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v5
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
+        run: |
+          ls ${{ github.workspace }}
+      - run: echo "🍏 This job's status is ${{ job.status }}."
+
+
+
+#      # TEST de l'API as sein de GitHub Actions en construisant un docker contenant l'API
+#      # recupération de l'artefact
+#      - name: Download_a_single_artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: package
+#
+#      - name: Build_Docker_image
+#        run: docker build -t apispringboot2026.
+#
+#      - name: Run_Docker_container
+#        run: docker run -d -p 9000:9000 --name api-test --network host apispringboot2026
+#
+#      - name: Show_API_logs
+#        run: docker logs api-test
+#
+#      - name: Wait_for_API_to_be_ready
+#        run: |
+#          while ! curl -s http://localhost:9000/actuator/health | grep -q '"status":"UP"'; do
+#            sleep 2
+#              done
+#
+#      - name: Test API endpoints
+#        run: |
+#            curl -s http://localhost:9000/persons | grep -q "id"
+#            if [ $? -ne 0 ]; then
+#              echo "Erreur: réponse inattendue pour /persons"
+#              exit 1
+#            fi
+#
+#      - name: Stop_Docker_container
+#        if: always()
+#        run: docker stop api-test && docker rm api-test

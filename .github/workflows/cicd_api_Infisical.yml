@@ -19,8 +19,8 @@ jobs:
       mysql_server:
         image: mysql:latest
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.INFISICAL_DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.INFISICAL_DB_NAME }}
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -39,7 +39,7 @@ jobs:
           done
 
       - name: Create_Database_from_script
-        run: mysql -h 127.0.0.1 -u root -p${{ secrets.DB_PASSWORD }} ${{ secrets.DB_NAME }} < infra/mysql/dump/script.sql
+        run: mysql -h 127.0.0.1 -u root -p${{ secrets.INFISICAL_DB_PASSWORD }} ${{ secrets.INFISICAL_DB_NAME }} < infra/mysql/dump/script.sql
 
       # ajout de la jdk
       - name: Set_up_JDK_21
@@ -64,10 +64,10 @@ jobs:
 
       - name: Build_and_analyze
         env: # Définit les variables pour toutes les étapes du job
-          SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USER }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.DB_DRIVER }}
+          SPRING_DATASOURCE_URL: ${{ secrets.INFISICAL_DB_URL }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.INFISICAL_DB_USER }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.INFISICAL_DB_PASSWORD }}
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${{ secrets.INFISICAL_DB_DRIVER }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SPRING_PROFILES_ACTIVE: ci
@@ -80,7 +80,7 @@ jobs:
         if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.PERSONAL_TOKEN_ALLURE }}
+          github_token: ${{ secrets.INFISICAL_PERSONAL_TOKEN_ALLURE }}
           publish_dir: target/site/allure-maven-plugin
           destination_dir: allure-report
           keep_files: false
@@ -91,40 +91,6 @@ jobs:
           name: package
           path: target/*.jar
           retention-days: 1
-
-#      # TEST de l'API as sein de GitHub Actions en construisant un docker contenant l'API
-#      # recupération de l'artefact
-#      - name: Download_a_single_artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: package
-#
-#      - name: Build_Docker_image
-#        run: docker build -t apispringboot2026.
-#
-#      - name: Run_Docker_container
-#        run: docker run -d -p 9000:9000 --name api-test --network host apispringboot2026
-#
-#      - name: Show_API_logs
-#        run: docker logs api-test
-#
-#      - name: Wait_for_API_to_be_ready
-#        run: |
-#          while ! curl -s http://localhost:9000/actuator/health | grep -q '"status":"UP"'; do
-#            sleep 2
-#              done
-#
-#      - name: Test API endpoints
-#        run: |
-#            curl -s http://localhost:9000/persons | grep -q "id"
-#            if [ $? -ne 0 ]; then
-#              echo "Erreur: réponse inattendue pour /persons"
-#              exit 1
-#            fi
-#
-#      - name: Stop_Docker_container
-#        if: always()
-#        run: docker stop api-test && docker rm api-test
 
       # message de fin indiquant que tout s'est bien passé
       - run: echo "🍏 This job's status is ${{ job.status }}."
@@ -139,7 +105,7 @@ jobs:
           if: always()
           with:
             github-token: ${{ github.token }}
-            webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+            webhook-uri: ${{ secrets.INFISICAL_MS_TEAMS_WEBHOOK_URI }}
 
 # PARTIE 2 - IMAGE DOCKER
 
@@ -168,8 +134,8 @@ jobs:
       - name: Connect_to_Docker_Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USER }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          username: ${{ secrets.INFISICAL_DOCKERHUB_USER }}
+          password: ${{ secrets.INFISICAL_DOCKERHUB_PASSWORD }}
 
       # recupération de l'artefact
       - name: Download_a_single_artifact
@@ -190,13 +156,13 @@ jobs:
           push: true
           github-token: ${{ github.token }}
           tags: |
-            ${{ secrets.DOCKERHUB_USER }}/apispringboot2026:latest
-            ${{ secrets.DOCKERHUB_USER }}/apispringboot2026:${{ github.sha }}
+            ${{ secrets.INFISICAL_DOCKERHUB_USER }}/apispringboot2026:latest
+            ${{ secrets.INFISICAL_DOCKERHUB_USER }}/apispringboot2026:${{ github.sha }}
           # Spécifie les architectures cibles
           #platforms: linux/amd64,linux/arm64,linux/arm/v7
           build-args: |
-            USERNAME=${{secrets.DB_USER}}
-            PASSWORD=${{secrets.DB_PASSWORD}}
+            USERNAME=${{secrets.INFISICAL_DB_USER}}
+            PASSWORD=${{secrets.INFISICAL_DB_PASSWORD}}
 
       # message de fin indiquant que tout s'est bien passe
       - run: echo "🍏 This job's status is ${{ job.status }}. 🏁 🏆"
@@ -211,4 +177,4 @@ jobs:
         if: always()
         with:
           github-token: ${{ github.token }}
-          webhook-uri: ${{ secrets.MS_TEAMS_WEBHOOK_URI }}
+          webhook-uri: ${{ secrets.INFISICAL_MS_TEAMS_WEBHOOK_URI }}
