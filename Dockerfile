@@ -25,8 +25,6 @@ COPY api2026-0.0.1-SNAPSHOT.jar /app/app.jar
 # le script permet de s'assurer de la disponibilité de la BDD
 COPY infra/script/wait-for-it.sh /app/wait-for-it.sh
 
-COPY .env /app/.env
-
 # rend le script exécutable
 RUN chmod +x /app/wait-for-it.sh
 
