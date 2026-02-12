@@ -8,6 +8,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 @SpringBootApplication
 public class Api2026Application {
 
+
+    // bloc static de chargement de l'environnement
    static {
         String isCi = System.getenv("CI");
         if (!"true".equals(isCi)) {
