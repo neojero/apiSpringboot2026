@@ -9,7 +9,7 @@
 # Dans un JAR 
 > Quand tu fais :
 
-```java
+```text
 java -jar app.jar
 ```
 - le .env n’existe plus sur le filesystem
@@ -34,7 +34,7 @@ Spring est conçu exactement pour ça.
 
 # Solution
 Windows (PowerShell)
-```java
+```text
 Get-Content .env | ForEach-Object {
   $name, $value = $_ -split '='
   setx $name $value
