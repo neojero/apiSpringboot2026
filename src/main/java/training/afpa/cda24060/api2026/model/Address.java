@@ -1,9 +1,7 @@
 package training.afpa.cda24060.api2026.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.ToString;
 
 import java.util.HashSet;
 import java.util.Set;

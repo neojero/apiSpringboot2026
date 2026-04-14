@@ -39,7 +39,8 @@ public class PersonController {
         }
         Person savedPerson = personMapper.toEntity(person);
         personService.savePerson(savedPerson);
-        return new ResponseEntity<>(personMapper.toDTO(savedPerson), HttpStatus.CREATED);
+        ResponseEntity<PersonDTO> personDTOResponseEntity = new ResponseEntity<>(personMapper.toDTO(savedPerson), HttpStatus.CREATED);
+        return personDTOResponseEntity;
     }
 
     @GetMapping("/persons")
@@ -79,7 +80,7 @@ public class PersonController {
 
     @DeleteMapping("/person/{id}")
     public ResponseEntity<Void> deletePerson(@PathVariable("id") Integer id) {
-        if (!personService.getPerson(id).isPresent()) {
+        if (personService.getPerson(id).isEmpty()) {
             throw new NoSuchElementException("Personne non trouvée avec l'ID : " + id);
         }
         personService.deletePerson(id);
