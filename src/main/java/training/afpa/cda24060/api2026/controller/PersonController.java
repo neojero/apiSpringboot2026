@@ -1,5 +1,8 @@
 package training.afpa.cda24060.api2026.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/")
+@Tag(name= "Persons", description = "Gestion des personnes et de leur informations")
 public class PersonController {
 
     @Autowired
@@ -33,6 +37,7 @@ public class PersonController {
     private PersonMapper personMapper;
 
     @PostMapping("/person")
+    @Operation(summary = "Création d'une personne", description = "Créer une nouvelle personne")
     public ResponseEntity<PersonDTO> createPerson(@Valid @RequestBody PersonDTO person) {
         if (personService.existsByFirstnameAndLastname(person.getFirstname(), person.getLastname())) {
             throw new ConflictException("Une personne avec ce prénom et nom existe déjà.");
@@ -44,6 +49,7 @@ public class PersonController {
     }
 
     @GetMapping("/persons")
+    @Operation(summary = "Lister les personnes", description = "Retourne la liste compléte des personnes présentes")
     public  Page<PersonDTO> getAllPersons(
             @PageableDefault(size = 10 , sort = "lastname") Pageable pageable,
             @ModelAttribute("search") PersonFilterDTO search) {
@@ -51,6 +57,8 @@ public class PersonController {
     }
 
     @GetMapping("/person/{id}")
+    @Operation(summary = "Liste une personne", description = "Retourne une personne existante à partir de son identifiant")
+    @Parameter(description = "ID de la personne", example = "1")
     public ResponseEntity<PersonDTO> getPersonById(@PathVariable("id") Integer id) {
         Optional<Person> person = Optional.of(personService.getPerson(id)
                 .orElseThrow(() -> new NoSuchElementException("Personne non trouvé avec l'id : " + id + " !")));
@@ -58,6 +66,8 @@ public class PersonController {
     }
 
     @PutMapping("/person/{id}")
+    @Operation(summary = "Modifier une personne", description = "Modifie une personne existante à partir de son identifiant")
+    @Parameter(description = "ID de la personne", example = "1")
     public ResponseEntity<PersonDTO> updatePerson(@PathVariable("id") Integer id, @Valid @RequestBody Person person) {
         // recherche de la personne dans la BDD
         // sinon trouvé exception
@@ -79,6 +89,8 @@ public class PersonController {
     }
 
     @DeleteMapping("/person/{id}")
+    @Operation(summary = "Supprimer d'une personne", description = "Supprime définitivement une personne à partir de son identifiant")
+    @Parameter(description = "ID de la personne", example = "1")
     public ResponseEntity<Void> deletePerson(@PathVariable("id") Integer id) {
         if (personService.getPerson(id).isEmpty()) {
             throw new NoSuchElementException("Personne non trouvée avec l'ID : " + id);
@@ -89,6 +101,8 @@ public class PersonController {
 
     // Nouvelle méthode : Récupération des emprunts d'une personne
     @GetMapping("/person/{id}/loans")
+    @Operation(summary = "Afficher les emprunts d'une personne", description = "Affiche tous les emprunts d'une personne à partir de son identifiant")
+    @Parameter(description = "ID de la personne", example = "1")
     public List<LoanDTO> getLoansByPerson(@PathVariable("id") Integer id) {
         Person person = personService.getPerson(id)
                 .orElseThrow(() -> new NoSuchElementException("Personne non trouvée avec l'ID : " + id));
