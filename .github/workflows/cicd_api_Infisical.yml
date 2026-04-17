@@ -42,7 +42,7 @@ jobs:
         env:
           SECRET_PASS: ${{ secrets.INFISICAL_DB_PASSWORD }}
           SECRET_DB_NAME: ${{ secrets.INFISICAL_DB_NAME }}
-        run: mysql -h 127.0.0.1 -u root -p "SECRET_PASS" "SECRET_DB_NAME" < infra/mysql/dump/script.sql
+        run: mysql -h 127.0.0.1 -u root -p"$SECRET_PASS" "$SECRET_DB_NAME" < infra/mysql/dump/script.sql
 
       # ajout de la jdk
       - name: Set_up_JDK_21
