@@ -2,6 +2,7 @@ package training.afpa.cda24060.api2026.controller;
 
 import io.qameta.allure.Description;
 import io.qameta.allure.Step;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
