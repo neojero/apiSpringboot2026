@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
+import training.afpa.cda24060.api2026.dto.filter.PersonFilterDTO;
 import training.afpa.cda24060.api2026.model.Person;
 import training.afpa.cda24060.api2026.repository.PersonRepository;
 
@@ -38,42 +40,46 @@ public class PersonServiceMockAllureTest {
     @Story("Récupération d'une personne par son ID")
     @Tag("Mock")
     public void GetPersonByIdTest() {
-        // Création d'une personne fictive pour le test
         Person person = createTestPerson(1, "John", "Doe");
 
-        // Configuration du comportement du mock pour la méthode findById
-        configureMockToReturnPerson(person);
+        when(personRepository.findById(1)).thenReturn(Optional.of(person));
 
-        // Appel de la méthode à tester
         Optional<Person> result = personService.getPerson(1);
 
-        // Vérification du résultat
-        verifyFindByIdCalledOnce();
+        verify(personRepository, times(1)).findById(1);
         assertPersonResult(result, 1, "John", "Doe");
     }
 
     @Test
-    @Description("Test de récupération de toutes les personnes")
+    @Description("Test de récupération de toutes les personnes (avec pagination + filtre)")
     @Severity(SeverityLevel.NORMAL)
     @Story("Récupération de toutes les personnes")
     @Tag("Mock")
     public void getPersonsTest() {
-        // Création de personnes fictives pour le test
+
         Person person1 = createTestPerson(1, "John", "Doe");
         Person person2 = createTestPerson(2, "Mary", "DoeOuap");
 
-        // Configuration du comportement du mock pour la méthode findAll
-        configureMockToReturnPersons(person1, person2);
+        Page<Person> page = new PageImpl<>(List.of(person1, person2));
 
-        // Appel de la méthode à tester
-        Iterable<Person> result = personService.getPersons();
+        when(personRepository.findAll((Example<Person>) any(), any(Pageable.class)))
+                .thenReturn(page);
 
-        // Vérification du résultat
-        verifyFindAllCalledOnce();
-        assertPersonsResult(result, "John", "Mary");
+        Pageable pageable = PageRequest.of(0, 10);
+        PersonFilterDTO filter = new PersonFilterDTO(); // vide pour ce test
+
+        Page<Person> result = personService.getPersons(pageable, filter);
+
+        verify(personRepository, times(1))
+                .findAll((Example<Person>) any(), any(Pageable.class));
+
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getFirstname()).isEqualTo("John");
+        assertThat(result.getContent().get(1).getFirstname()).isEqualTo("Mary");
     }
 
-    @Step("Créer une personne fictive pour le test")
+    // ===== Helpers =====
+
     private Person createTestPerson(int id, String firstName, String lastName) {
         Person person = new Person();
         person.setId(id);
@@ -82,40 +88,10 @@ public class PersonServiceMockAllureTest {
         return person;
     }
 
-    @Step("Configurer le mock pour renvoyer une personne")
-    private void configureMockToReturnPerson(Person person) {
-        when(personRepository.findById(1)).thenReturn(Optional.of(person));
-    }
-
-    @Step("Configurer le mock pour renvoyer des personnes")
-    private void configureMockToReturnPersons(Person... persons) {
-        when(personRepository.findAll()).thenReturn(Arrays.asList(persons));
-    }
-
-    @Step("Vérifier que findById a été appelé une fois")
-    private void verifyFindByIdCalledOnce() {
-        verify(personRepository, times(1)).findById(1);
-    }
-
-    @Step("Vérifier que findAll a été appelé une fois")
-    private void verifyFindAllCalledOnce() {
-        verify(personRepository, times(1)).findAll();
-    }
-
-    @Step("Vérifier le résultat de la personne")
     private void assertPersonResult(Optional<Person> result, int id, String firstName, String lastName) {
-        assertThat(result.isPresent()).isTrue();
+        assertThat(result).isPresent();
         assertThat(result.get().getId()).isEqualTo(id);
         assertThat(result.get().getFirstname()).isEqualTo(firstName);
         assertThat(result.get().getLastname()).isEqualTo(lastName);
     }
-
-    @Step("Vérifier le résultat des personnes")
-    private void assertPersonsResult(Iterable<Person> result, String... expectedNames) {
-        List<Person> personList = StreamSupport.stream(result.spliterator(), false).toList();
-        for (int i = 0; i < expectedNames.length; i++) {
-            assertThat(personList.get(i).getFirstname()).isEqualTo(expectedNames[i]);
-        }
-    }
-
 }
